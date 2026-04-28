@@ -156,7 +156,7 @@ EASTERN = timezone(timedelta(hours=-4))  # EDT; change to -5 in winter (EST)
 
 
 def is_business_hours(ts):
-    """Mon–Fri, 9 AM–5 PM Eastern."""
+    """Mon-Fri, 9 AM-5 PM Eastern."""
     local = ts.astimezone(EASTERN)
     if local.weekday() >= 5:
         return False
@@ -269,28 +269,33 @@ def write_to_tracker(target_date, avg_minutes):
     print(f"  Wrote {avg_minutes} min to row {row_num} (col J) for {target_date}")
 
 
+def last_business_day(from_date):
+    """Return the most recent weekday strictly before from_date."""
+    d = from_date - timedelta(days=1)
+    while d.weekday() >= 5:  # skip Saturday (5) and Sunday (6)
+        d -= timedelta(days=1)
+    return d
+
+
 def main():
     if not API_KEY or not LOCATION_ID:
         print("ERROR: GHL_API_KEY and GHL_LOCATION_ID must be set")
         sys.exit(1)
 
     now_eastern = datetime.now(timezone.utc).astimezone(EASTERN)
-    yesterday = (now_eastern - timedelta(days=1)).date()
+    today = now_eastern.date()
+    data_date = last_business_day(today)
 
     print(f"=== Daily Response Time Update — {datetime.now().strftime('%Y-%m-%d %H:%M')} ===")
-    print(f"Analyzing new conversations from: {yesterday}")
+    print(f"Analyzing new conversations from: {data_date}")
 
-    if yesterday.weekday() >= 5:
-        print(f"{yesterday} is a weekend — skipping.")
-        sys.exit(0)
-
-    avg = compute_avg_response(yesterday)
+    avg = compute_avg_response(data_date)
     if avg is None:
-        print(f"No data to write for {yesterday}. Column J left unchanged.")
+        print(f"No data to write for {data_date}. Column J left unchanged.")
         sys.exit(0)
 
     print("\nWriting to Daily Tracker...")
-    write_to_tracker(yesterday, avg)
+    write_to_tracker(data_date, avg)
     print("Done.")
 
 
