@@ -22,15 +22,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Check secrets
-        run: |
-          echo "GHL_API_KEY set: ${{ secrets.GHL_API_KEY != '' }}"
-          echo "GHL_LOCATION_ID set: ${{ secrets.GHL_LOCATION_ID != '' }}"
-          echo "GOOGLE_CREDENTIALS_JSON set: ${{ secrets.GOOGLE_CREDENTIALS_JSON != '' }}"
+      - name: Write Google credentials
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS_JSON }}' > /tmp/google-creds.json
 
       - name: Run daily update
         env:
           GHL_API_KEY: ${{ secrets.GHL_API_KEY }}
           GHL_LOCATION_ID: ${{ secrets.GHL_LOCATION_ID }}
-          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/google-creds.json
         run: python daily_update.py
