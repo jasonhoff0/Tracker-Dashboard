@@ -250,6 +250,7 @@ def get_sheets_client():
     - Local: uses OAuth token cached by gspread (~/.config/gspread/).
     """
     creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    print(f"  GOOGLE_CREDENTIALS_JSON present: {bool(creds_json)}")
     if creds_json:
         from google.oauth2.service_account import Credentials as SACredentials
         creds = SACredentials.from_service_account_info(
@@ -257,6 +258,11 @@ def get_sheets_client():
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
         )
         return gspread.authorize(creds)
+    if os.getenv("GITHUB_ACTIONS"):
+        raise RuntimeError(
+            "GOOGLE_CREDENTIALS_JSON secret is not set — add it in "
+            "Settings -> Secrets and variables -> Actions"
+        )
     return gspread.oauth()
 
 
