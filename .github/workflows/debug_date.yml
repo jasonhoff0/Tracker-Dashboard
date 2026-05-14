@@ -43,16 +43,16 @@ jobs:
           results = []
           for c in convos:
               t = get_first_response_time(c)
-              results.append((c.get("contactName") or c.get("id"), t))
+              results.append((c.get("contactName") or c.get("id"), c.get("type", "UNKNOWN"), t))
 
-          results.sort(key=lambda x: x[1] or 0, reverse=True)
+          results.sort(key=lambda x: x[2] or 0, reverse=True)
 
-          times = [t for _, t in results if t is not None]
-          for name, mins in results:
+          times = [t for _, _, t in results if t is not None]
+          for name, ctype, mins in results:
               if mins is not None:
-                  print(f"{mins:>8.1f} min  {name}")
+                  print(f"{mins:>8.1f} min  [{ctype}]  {name}")
               else:
-                  print(f"   no reply  {name}")
+                  print(f"   no reply  [{ctype}]  {name}")
 
           if times:
               print(f"\nAverage: {round(statistics.mean(times), 1)} min over {len(times)} conversations")
